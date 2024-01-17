@@ -1,8 +1,12 @@
-# Sample GitLab Project
+# Video Hosting Project
 
-This sample project shows how a project in GitLab looks for demonstration purposes. It contains issues, merge requests and Markdown files in many branches,
-named and filled with lorem ipsum.
+Develop video hosting application using spring cloud concepts including cloudstream, use Kafka as message broker.
+Use Async operations between microservices using broker
 
-You can look around to get an idea how to structure your project and, when done, you can safely delete this project.
+It has various modules as follows:
 
-[Learn more about creating GitLab projects.](https://docs.gitlab.com/ee/gitlab-basics/create-project.html)
+1. Channel service
+2. Media service
+3. Subscriber service
+4. Notification service
+
