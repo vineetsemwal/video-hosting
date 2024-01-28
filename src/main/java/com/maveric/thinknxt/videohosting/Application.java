@@ -59,7 +59,7 @@ public class Application {
         return (inputStream) -> inputStream.peek((key,value)->log.info("key: {} value: {}",key,value));
     }
 
-    @Bean
+    /*@Bean
     public Function<KStream<Long, SubscriberInfo>, KStream<Long, SubscriptionNotification>> subscribeNotification() {
         Function<KStream<Long, SubscriberInfo>, KStream<Long, SubscriptionNotification>> function = inputStream -> {
             KStream<Long, SubscriptionNotification> grouped = inputStream
@@ -73,13 +73,58 @@ public class Application {
                                 aggV.getSubscriberInfoList().add(value);
                                 return aggV;
                             },
-                            Materialized.with(Serdes.Long(), subscriptionNotificationSerde()))
+                            Materialized.with(Serdes.Long(),new SubscriptionNotificationSerdes()
+                            ))
+
                     .toStream()
                     .peek((key,value)->log.info("After delivery:: key: {} value {}",key,value));
             return grouped;
         };
         return function;
     }
+
+
+     */
+
+    /**
+     *  Grouping by key channel id
+     *  windowing for 3 mins and extra 30 secs grace period,
+     *  aggregating all subscribers in SubscriberNotification for same key,
+     *  using materialized store with LongSerde for key, SubscriptionNotificationSerdes for value
+     *  converting to stream
+     *  Using map as the stream has windowdkey and suscriptionNotification as balue
+     *  Using keyvaluemapper which maps windowedkey,SubscriptionNotification value stream to channelid,SubscriptionNotification value stream
+     *  returning the finally mapped sstream
+     *
+     */
+    @Bean
+    public Function<KStream<Long, SubscriberInfo>, KStream<Long, SubscriptionNotification>> subscribeNotification() {
+        KeyValueMapper<Windowed<Long>,SubscriptionNotification,KeyValue<Long,SubscriptionNotification>> keyValueMap =(windowKey, value)->new KeyValue<>(windowKey.key(),value);
+        Function<KStream<Long, SubscriberInfo>, KStream<Long, SubscriptionNotification>> function = inputStream -> {
+            KStream<Long, SubscriptionNotification> grouped = inputStream
+                    .peek((key,value)->log.info("Before delivery:: key: {} value {}",key,value))
+                    .groupByKey()
+                    .windowedBy(TimeWindows.ofSizeAndGrace(Duration.ofMinutes(3),Duration.ofSeconds(30)))
+                    .aggregate(SubscriptionNotification::new,
+                            (key,value,aggV)-> {
+                                if(key != aggV.getChannelId()) {
+                                    aggV.setChannelId(key);
+                                }
+                                aggV.getSubscriberInfoList().add(value);
+                                return aggV;
+                            },
+                            Materialized.with(Serdes.Long(),new SubscriptionNotificationSerdes()
+                                    ))
+                    .toStream()
+                    .map(keyValueMap)
+                    .peek((key,value)->log.info("After delivery:: key: {} value {}",key,value));
+            return grouped;
+        };
+        return function;
+    }
+
+
+
 
     /*@Bean
     public Serde<Windowed<String>>windowedStringSerde(){

@@ -28,11 +28,16 @@ public class Subscriber {
     @Column(unique = true)
     private String email;
 
+    /**
+     * relationship should be many to many
+     * one subscribe can subscribe multiple channels,
+     * one channel can be subscribed by multiple subscribers
+     */
     @JoinTable(
             name = "channel_subscribe",
             joinColumns = @JoinColumn(name = "subscriber_id", referencedColumnName = "subscriber_id"),
             inverseJoinColumns = @JoinColumn(name = "channel_id", referencedColumnName = "channel_id")
     )
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<MediaChannel> mediaChannels = new HashSet<>();
 }

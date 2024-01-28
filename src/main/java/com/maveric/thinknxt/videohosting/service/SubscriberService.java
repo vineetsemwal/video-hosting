@@ -31,6 +31,7 @@ public class SubscriberService {
                 .orElseThrow(()-> new ResourceNotFoundException("Channel not exists with given name :"+subscribeChannelRequest.getSubscribeChannel()));
         if(Objects.nonNull(subscriber)) {
             subscriber.getMediaChannels().add(mediaChannel);
+            System.out.println("****adding new media channel for subscription"+subscriber);
             subscriberRepository.save(subscriber);
             subscriberProcessor.subcribeChannel(mediaChannel.getId(), subscriber);
         }

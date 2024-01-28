@@ -20,6 +20,6 @@ import java.util.Set;
 public class SubscriptionNotification {
     private Long channelId;
     private String channelOwnerEmail;
-    @JsonIgnore
+  //  @JsonIgnore
     private Set<SubscriberInfo> subscriberInfoList = new HashSet<>();
 }
